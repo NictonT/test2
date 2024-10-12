@@ -1,52 +1,63 @@
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.6.1/dist/js/tabulator.min.js"></script>
 <script>
+  const SHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your Google Sheets ID
+  const API_KEY = 'YOUR_API_KEY'; // Replace with your Google API key
+  const RANGE = 'Sheet1!A1:F'; // Specify your sheet name and range
+
   // Trigger table creation when the DOM is ready.
   document.addEventListener("DOMContentLoaded", createTable);
 
+  function createTable() {
+    // Fetch data from the Google Sheets API
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`)
+      .then(response => response.json())
+      .then(data => {
+        const tableData = formatData(data.values);
 
-  function createTable(){
-    google.script.run.withSuccessHandler((tableData)=>{
-      console.log(tableData);
-      let table = new Tabulator("#example-table",{
-        data:tableData,
-        pagination:true,
-        paginationSize:10,
-        paginationSizeSelector:true,
-        movableColumns:true,
-        responsiveLayout:"collapse",
-        layout:"fitColumns",
-        columnDefaults:{tooltip:true,},
-        columns:[
-          {title:"Rating",field:"Rating",formatter:"star",},
-          {title:"Reviews",field:"Reviews",headerFilter:true,headerFilterPlaceholder: "Min. Reviews",headerFilterFunc:greaterThanFilter,},
-          {title:"Book title",field:"Book title",headerFilter:true,headerFilterPlaceholder: "Book Title",width:400,},
-          {title:"Number of Pages",field:"Number of Pages",headerFilter:true,headerFilterPlaceholder: "Min. Pages",headerFilterFunc:greaterThanFilter,},
-          {title:"Type",field:"Type",headerFilter:true},
-          {title:"Price",field:"Price",headerFilter:true,headerFilterPlaceholder: "Max. Price",headerFilterFunc:lessThanFilter,},
-        ],
-      });
-    }).getData();
+        // Initialize Tabulator with the fetched data
+        let table = new Tabulator("#example-table", {
+          data: tableData,
+          pagination: true,
+          paginationSize: 10,
+          paginationSizeSelector: true,
+          movableColumns: true,
+          responsiveLayout: "collapse",
+          layout: "fitColumns",
+          columnDefaults: { tooltip: true },
+          columns: [
+            { title: "Rating", field: "Rating", formatter: "star" },
+            { title: "Reviews", field: "Reviews", headerFilter: true, headerFilterPlaceholder: "Min. Reviews", headerFilterFunc: greaterThanFilter },
+            { title: "Book Title", field: "Book title", headerFilter: true, headerFilterPlaceholder: "Book Title", width: 400 },
+            { title: "Number of Pages", field: "Number of Pages", headerFilter: true, headerFilterPlaceholder: "Min. Pages", headerFilterFunc: greaterThanFilter },
+            { title: "Type", field: "Type", headerFilter: true },
+            { title: "Price", field: "Price", headerFilter: true, headerFilterPlaceholder: "Max. Price", headerFilterFunc: lessThanFilter }
+          ]
+        });
+      })
+      .catch(error => console.error('Error fetching data:', error));
   }
 
+  // Helper function to format data for Tabulator
+  function formatData(values) {
+    const headers = values[0];
+    return values.slice(1).map(row => {
+      let obj = {};
+      for (let i = 0; i < headers.length; i++) {
+        obj[headers[i]] = row[i];
+      }
+      return obj;
+    });
+  }
 
-
-  function greaterThanFilter(headerValue, rowValue){
-    // Convert values to numbers for comparison (if necessary)
+  function greaterThanFilter(headerValue, rowValue) {
     headerValue = parseFloat(headerValue);
     rowValue = parseFloat(rowValue);
-
-    //Greater than logic
     return rowValue > headerValue;
   }
 
-
-
-  function lessThanFilter(headerValue, rowValue){
-    // Convert values to numbers for comparison (if necessary)
+  function lessThanFilter(headerValue, rowValue) {
     headerValue = parseFloat(headerValue);
     rowValue = parseFloat(rowValue);
-
-    //Greater than logic
     return rowValue < headerValue;
   }
 </script>
