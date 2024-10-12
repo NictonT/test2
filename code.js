@@ -1,20 +1,15 @@
-const SPREADSHEET_ID = '1ST5As1-P0-NMQEuTwZJa4Cd9AtelFRN67hws3RsNW40';
-const DATA_RANGE = "Data!A1:f";
+const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your Spreadsheet ID
+const DATA_RANGE = "Sheet1!A1:F"; // Adjust the range according to your data
 
 function doGet() {
-  let html = include('Index');
-  let htmlOutput = {
-    html: html,
-    metaTags: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }]
-  };
-  return htmlOutput;
+  let html = include('Index'); // This refers to the HTML file
+  return HtmlService.createHtmlOutput(html).setSandboxMode(HtmlService.SandboxMode.IFRAME);
 }
 
 function getData() {
   const range = getSpreadsheetValues(SPREADSHEET_ID, DATA_RANGE);
   const data = range.values;
-
-  const headers = data.shift();
+  const headers = data.shift(); // Remove header row
 
   const tableData = data.map(row => {
     const obj = {};
@@ -24,20 +19,13 @@ function getData() {
     return obj;
   });
 
-  console.log(tableData);
   return tableData;
 }
 
 function include(fileName) {
-  return getHtmlContent(fileName);
+  return HtmlService.createHtmlOutputFromFile(fileName).getContent();
 }
 
 function getSpreadsheetValues(spreadsheetId, range) {
-  // Placeholder for Sheets API call equivalent in JavaScript
-  return { values: [] };
-}
-
-function getHtmlContent(fileName) {
-  // Placeholder for HTML content fetching in JavaScript
-  return "";
+  return SpreadsheetApp.openById(spreadsheetId).getRange(range).getValues();
 }
